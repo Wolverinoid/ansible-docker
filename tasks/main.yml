@@ -1,0 +1,27 @@
+---
+- name: Add gpg key
+  ansible.builtin.get_url:
+    url: "{{ docker_repo_key }}"
+    dest: "/etc/apt/keyrings/{{ docker_repo_key_id }}.asc"
+    mode: 0644
+    force: yes  
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    filename: "docker"
+    repo: "deb [signed-by=/etc/apt/keyrings/{{ docker_repo_key_id }}.asc] {{ docker_repo }}"
+    state: present
+
+- name: install docker and dependencies
+  apt:
+    name: "{{ docker_packages }}"
+    state: latest
+    update_cache: yes
+    #cache_valid_time: 3600
+  with_items: "{{ docker_packages}}"
+
+- name: start docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
